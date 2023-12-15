@@ -2,12 +2,16 @@
 #include <WiFi.h>
 #include <ESP32Servo.h>
 
-#define SIGNAL_TIMEOUT 250
+#define SIGNAL_TIMEOUT 1000
+#define DATA_STIME 50 //The time between each data send cycle
+#define DATA_PTIME 1000 //The time between each data send cycle
 // REPLACE WITH YOUR RECEIVER MAC Address
-uint8_t receiverMacAddress[] = {0xA0,0xA3,0xB3,0x28,0x6C,0x5C}; //0x48,0xE7,0x29,0x95,0xED,0xC0 Test board ESP32
+uint8_t receiverMacAddress[] = {0x48,0xE7,0x29,0x95,0xED,0xC0}; //0x48,0xE7,0x29,0x95,0xED,0xC0 Test board ESP32
                                                                 //0xA0,0xA3,0xB3,0x28,0x6C,0x5C Drone ESP32
 unsigned long lastRecvTime = 0;
 unsigned long time_prev = 0;
+int cnt = 0;
+bool signal_send;
 
 struct PacketData{
   byte xAxisValue;
@@ -70,6 +74,18 @@ int mapAndAdjustJoystickDeadBandValues(int value, bool reverse)
   }
   //Serial.println(value);  
   return value;
+}
+
+//Create flip flops to delay sending time
+void FlipFlop() {
+  if (cnt == DATA_STIME){
+    cnt = 0;
+    signal_send = true;
+  }
+  else{
+    cnt = cnt + 1;
+    signal_send = false;
+  }
 }
 
 // callback when data is sent
@@ -138,24 +154,28 @@ void loop()
   data.switch2Value   = !digitalRead(19);
   data.potValue = map(analogRead(35), 0, 4095, 0, 180); // Read the pot, map the reading from [0, 4095] to [0, 180]
   
-  esp_err_t result = esp_now_send(receiverMacAddress, (uint8_t *) &data, sizeof(data));
-  if (result != ESP_OK) 
-  {
-    Serial.println("Error sending the data");
-  }    
-  
-  delay(50);
+  FlipFlop();
+
   unsigned long now = millis();
   if ( now - lastRecvTime > SIGNAL_TIMEOUT ) {
     Serial.println("Error Receiving the data");
   }
+
+  if (signal_send){
+    esp_err_t result = esp_now_send(receiverMacAddress, (uint8_t *) &data, sizeof(data));
+      if (result != ESP_OK) {
+        Serial.println("Error sending the data");
+      }    
+  }
+  
   SerialDataPrint();
 }
 
 void SerialDataPrint()
 {
-  if (millis() - time_prev >= SIGNAL_TIMEOUT)
+  if ((millis() - time_prev >= DATA_PTIME))
   {
+    time_prev = millis(); 
     //Print angle and rate of angle change
     Serial.print(gpsData.ax);
     Serial.print("\t");
