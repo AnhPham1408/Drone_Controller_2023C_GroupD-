@@ -44,6 +44,8 @@ struct GPSData{
   int rrm;
   int joystickx;
   int joysticky;
+  int yawr;
+  int yawl;
 };
 GPSData gpsData;
 
@@ -202,10 +204,14 @@ void SerialDataPrint()
     Serial.print("\t");
     Serial.print(gpsData.rrm);
     Serial.print("\t");
-    //Print Joystick value
+    //Print Joystick and switches value from the drone
     Serial.print(gpsData.joystickx);
     Serial.print("\t");
     Serial.print(gpsData.joysticky);
+    Serial.print("\t");
+    Serial.print(gpsData.yawl);
+    Serial.print("\t");
+    Serial.print(gpsData.yawr);
     Serial.print("\t");
     //Print GPS data
     Serial.print(gpsData.LatitudeValue);
