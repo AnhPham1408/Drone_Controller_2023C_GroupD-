@@ -4,9 +4,9 @@
 
 #define SIGNAL_TIMEOUT 1000
 #define DATA_STIME 50 //The time between each data send cycle
-#define DATA_PTIME 1000 //The time between each data send cycle
+#define DATA_PTIME 250 //The time between each data send cycle
 // REPLACE WITH YOUR RECEIVER MAC Address
-uint8_t receiverMacAddress[] = {0x48,0xE7,0x29,0x95,0xED,0xC0}; //0x48,0xE7,0x29,0x95,0xED,0xC0 Test board ESP32
+uint8_t receiverMacAddress[] = {0xA0,0xA3,0xB3,0x28,0x6C,0x5C}; //0x48,0xE7,0x29,0x95,0xED,0xC0 Test board ESP32
                                                                 //0xA0,0xA3,0xB3,0x28,0x6C,0x5C Drone ESP32
 unsigned long lastRecvTime = 0;
 unsigned long time_prev = 0;
@@ -42,6 +42,8 @@ struct GPSData{
   int frm;
   int rlm;
   int rrm;
+  int joystickx;
+  int joysticky;
 };
 GPSData gpsData;
 
@@ -201,9 +203,9 @@ void SerialDataPrint()
     Serial.print(gpsData.rrm);
     Serial.print("\t");
     //Print Joystick value
-    Serial.print(data.xAxisValue);
+    Serial.print(gpsData.joystickx);
     Serial.print("\t");
-    Serial.print(data.yAxisValue);
+    Serial.print(gpsData.joysticky);
     Serial.print("\t");
     //Print GPS data
     Serial.print(gpsData.LatitudeValue);
